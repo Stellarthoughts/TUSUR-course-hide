@@ -1,0 +1,61 @@
+.ch_hidden_course
+{
+    background: #e3e3e3;
+}
+
+.ch_hidden_course a 
+{
+    color: #53798b;
+}
+
+.ch_hidden_course li 
+{
+    color: #858484;
+}
+
+.ch_hidden_course span 
+{
+    border-color: #cacaca;
+    color: #53798b;
+}
+
+.ch_hidden_course div 
+{
+    border-color: #cacaca;
+    color: #53798b;
+}
+
+.ch_btn_div 
+{
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.ch_btn
+{
+    width : 25.75px;
+    height : 27.27px;
+}
+
+.ch_btn_deleted
+{
+    background: rgb(255, 108, 108);
+}
+
+.ch_btn_deleted:hover 
+{
+    background: rgb(73, 138, 73);
+}
+
+.ch_btn_allowed
+{
+    background: green;
+}
+
+.ch_btn_allowed:hover 
+{
+    background: red;
+}
