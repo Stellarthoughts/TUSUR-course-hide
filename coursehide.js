@@ -9,10 +9,8 @@
         window.firstDeleted = null;
         window.toDelete = [];
 
-        chrome.storage.sync.get(['course'], function(entries){
-            console.log(entries.course);
+        chrome.storage.sync.get('course', function(entries){
             window.toDelete = deserializeEntries(entries.course);
-            console.log(window.toDelete);
         });
 
         var parentObserver = new MutationObserver(function(mutations, parentObserver) {
@@ -94,9 +92,8 @@ function updateToDelete(entries)
 {
     var sEntries = serializeEntries(entries);
     window.toDelete = entries;
-    chrome.storage.sync.set({'course':sEntries}, function() {
-        console.log(sEntries);
-    });
+    console.log(window.toDelete);
+    chrome.storage.sync.set({'course':sEntries}, function() {});
 }
 
 function addButton(node, toDeleteHere)
@@ -129,7 +126,7 @@ function deleteEntry(btn)
 {
     var courseid = btn.name;
 
-    chrome.storage.sync.get(['course'], function(entries){
+    chrome.storage.sync.get('course', function(entries){
         var arr = deserializeEntries(entries.course);
         var ind = arr.indexOf(courseid);
         if(ind == -1) return;
@@ -173,8 +170,7 @@ function addEntry(btn)
 {
     var courseid = btn.name;
 
-    chrome.storage.sync.get(['course'], function(entries){
-        console.log(entries.course);
+    chrome.storage.sync.get('course', function(entries){
         var arr = deserializeEntries(entries.course);
         if(arr.indexOf(courseid) == -1) arr.push(courseid);
         updateToDelete(arr);
@@ -188,7 +184,7 @@ function addEntry(btn)
 function deserializeEntries(s) // from string to arr
 {
     var arr = [];
-    if(typeof s.links === 'undefined' || s == null || s.length == 0) return arr;
+    if(typeof s === 'undefined' || s.length == 0) return arr;
     arr = s.split(' ');
     return arr;
 }
