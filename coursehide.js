@@ -9,91 +9,107 @@
         window.firstDeleted = null;
         window.toDelete = [];
 
-        chrome.storage.sync.get('course', function(entries){
-            window.toDelete = deserializeEntries(entries.course);
+        /*chrome.storage.local.get('course', function(entries) {
+            window.toDelete = entries.course;  
+        });*/
+
+        chrome.runtime.sendMessage( { greeting: "getToDelete"}, function(response) {
+            window.toDelete = response.farewell;
+            console.log(toDelete);
         });
 
-        var parentObserver = new MutationObserver(function(mutations, parentObserver) {
-            for (var i=0; i<mutations.length; i++) {
-                var mutationAddedNodes = mutations[i].addedNodes;
-                for (var j=0; j<mutationAddedNodes.length; j++)
-                {
-                    var node = mutationAddedNodes[j];
-                    if (node.classList && node.classList.contains("frontpage-course-list-enrolled"))
-                    {
-                        window.divsParent = node;
-                        window.parent = node.parentElement;
-                        parentObserver.disconnect();
-                        return;
-                    }
-                }
-            }
-        });
+        var parentObserver = returnParentObserver();
         parentObserver.observe(document, {childList: true, subtree: true});
-
-        var divObserver = new MutationObserver(function(mutations, divObserver) {
-            for (var i=0; i<mutations.length; i++) {
-                var mutationAddedNodes = mutations[i].addedNodes;
-                for (var j=0; j<mutationAddedNodes.length; j++)
-                {
-                    var node = mutationAddedNodes[j];
-                    if (node.classList && node.classList.contains("coursebox")) {
-
-                        // Store in order
-                        divsInOrderCourseId.push(node.dataset.courseid);
-
-                        // Buttons
-                        console.log(window.toDelete);
-                        addButton(node, window.toDelete);
-
-                        // Rearange & Add Style
-                        divObserver.disconnect();
-                        if(toDelete.includes(node.dataset.courseid))
-                        {
-                            if(window.firstDeleted == null) window.firstDeleted = node;
-                            else window.divsParent.insertBefore(node,null);
-                            node.classList.remove("odd","even","first");
-                            node.classList.add("ch_hidden_course");
-                            divs.push(node);
-                        }
-                        else 
-                        {
-                            if(firstDeleted != null) 
-                            {
-                                window.divsParent.insertBefore(node,window.firstDeleted);
-                                window.divs.splice(divs.indexOf(window.firstDeleted),0,node);
-                            }
-                            else divs.push(node);
-
-                            // Fix color
-                            var index = window.divs.indexOf(node);
-                            node.classList.remove("odd","even","first");
-                            if(index == 0) node.classList.add("first");
-                            if(index % 2 == 0) node.classList.add("odd");
-                            else node.classList.add("even");
-                        }
-
-                        divObserver.observe(document, {childList: true, subtree: true});
-                    }
-                }
-            }
-        });
+    
+        var divObserver = returnDivObserver();
         divObserver.observe(document, {childList: true, subtree: true});
 
         window.addEventListener('load', function () {
             divObserver.disconnect();
         })
-
     }
 
 )();
 
+function returnParentObserver()
+{
+    var parentObserver = new MutationObserver(function(mutations, parentObserver) {
+        for (var i=0; i<mutations.length; i++) {
+            var mutationAddedNodes = mutations[i].addedNodes;
+            for (var j=0; j<mutationAddedNodes.length; j++)
+            {
+                var node = mutationAddedNodes[j];
+                if (node.classList && node.classList.contains("frontpage-course-list-enrolled"))
+                {
+                    window.divsParent = node;
+                    window.parent = node.parentElement;
+                    parentObserver.disconnect();
+                    return;
+                }
+            }
+        }
+    });
+    return parentObserver;
+}
+
+function returnDivObserver()
+{
+    var divObserver = new MutationObserver(function(mutations, divObserver) {
+        for (var i=0; i<mutations.length; i++) {
+            var mutationAddedNodes = mutations[i].addedNodes;
+            for (var j=0; j<mutationAddedNodes.length; j++)
+            {
+                var node = mutationAddedNodes[j];
+                if (node.classList && node.classList.contains("coursebox")) {
+
+                    // Store in order
+                    divsInOrderCourseId.push(node.dataset.courseid);
+
+                    // Buttons
+                    console.log(window.toDelete);
+                    addButton(node, window.toDelete);
+
+                    // Rearange & Add Style
+                    divObserver.disconnect();
+                    if(toDelete.includes(node.dataset.courseid))
+                    {
+                        if(window.firstDeleted == null) window.firstDeleted = node;
+                        else window.divsParent.insertBefore(node,null);
+                        node.classList.remove("odd","even","first");
+                        node.classList.add("ch_hidden_course");
+                        divs.push(node);
+                    }
+                    else 
+                    {
+                        if(firstDeleted != null) 
+                        {
+                            window.divsParent.insertBefore(node,window.firstDeleted);
+                            window.divs.splice(divs.indexOf(window.firstDeleted),0,node);
+                        }
+                        else divs.push(node);
+
+                        // Fix color
+                        var index = window.divs.indexOf(node);
+                        node.classList.remove("odd","even","first");
+                        if(index == 0) node.classList.add("first");
+                        if(index % 2 == 0) node.classList.add("odd");
+                        else node.classList.add("even");
+                    }
+
+                    divObserver.observe(document, {childList: true, subtree: true});
+                }
+            }
+        }
+    });
+    return divObserver;
+}
+
 function updateToDelete(entries)
 {
-    var sEntries = serializeEntries(entries);
     window.toDelete = entries;
     console.log(window.toDelete);
-    chrome.storage.sync.set({'course':sEntries}, function() {});
+    chrome.storage.sync.set({'course':entries}, function() {});
+    chrome.storage.local.set({'course':entries}, function() {});
 }
 
 function addButton(node, toDeleteHere)
@@ -126,8 +142,8 @@ function deleteEntry(btn)
 {
     var courseid = btn.name;
 
-    chrome.storage.sync.get('course', function(entries){
-        var arr = deserializeEntries(entries.course);
+    chrome.storage.local.get('course', function(entries){
+        var arr = entries.course;
         var ind = arr.indexOf(courseid);
         if(ind == -1) return;
         arr.splice(ind, 1);
@@ -170,8 +186,9 @@ function addEntry(btn)
 {
     var courseid = btn.name;
 
-    chrome.storage.sync.get('course', function(entries){
-        var arr = deserializeEntries(entries.course);
+    chrome.storage.local.get('course', function(entries){
+        console.log(entries.course);
+        var arr = entries.course;
         if(arr.indexOf(courseid) == -1) arr.push(courseid);
         updateToDelete(arr);
 
@@ -181,7 +198,7 @@ function addEntry(btn)
     });
 }
 
-function deserializeEntries(s) // from string to arr
+/*function deserializeEntries(s) // from string to arr
 {
     var arr = [];
     if(typeof s === 'undefined' || s.length == 0) return arr;
@@ -195,7 +212,7 @@ function serializeEntries(arr) // from arr to string
     if(arr == null || arr.length == 0) return s;
     s = arr.join(' ');
     return s;
-}
+}*/
 
 function findCourseDiv(courseid)
 {

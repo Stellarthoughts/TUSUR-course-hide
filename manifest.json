@@ -2,7 +2,12 @@
   "manifest_version": 2,
   "name": "TUSUR Course Hide",
   "description": "Надоело, что в СДО висят курсы еще со времен палеозоя? Данное улучшение спасет ваше время и нервы. P.S. За ФСУ!",
-  "version": "0.8",
+  "version": "0.9",
+
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
 
   "content_scripts": [
     {
