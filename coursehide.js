@@ -13,10 +13,14 @@
             window.toDelete = entries.course;  
         });*/
 
-        chrome.runtime.sendMessage( { greeting: "getToDelete"}, function(response) {
+        /*chrome.runtime.sendMessage( { greeting: "getToDelete"}, function(response) {
             window.toDelete = response.farewell;
             console.log(toDelete);
-        });
+        });*/
+        //console.log(localStorage.toDelete);
+        //window.toDelete = JSON.parse(localStorage.toDelete);
+        //window.toDelete = JSON.parse(localStorage.getItem('course'));
+        init();
 
         var parentObserver = returnParentObserver();
         parentObserver.observe(document, {childList: true, subtree: true});
@@ -30,6 +34,13 @@
     }
 
 )();
+
+function init()
+{
+    var item = localStorage.getItem('course');
+    if(item == null) window.toDelete = [];
+    else window.toDelete = JSON.parse(item);
+}
 
 function returnParentObserver()
 {
@@ -107,9 +118,9 @@ function returnDivObserver()
 function updateToDelete(entries)
 {
     window.toDelete = entries;
-    console.log(window.toDelete);
-    chrome.storage.sync.set({'course':entries}, function() {});
-    chrome.storage.local.set({'course':entries}, function() {});
+    localStorage.setItem('course', JSON.stringify(entries));
+    //chrome.storage.sync.set({'course':entries}, function() {});
+    //chrome.storage.local.set({'course':entries}, function() {});
 }
 
 function addButton(node, toDeleteHere)
@@ -142,8 +153,8 @@ function deleteEntry(btn)
 {
     var courseid = btn.name;
 
-    chrome.storage.local.get('course', function(entries){
-        var arr = entries.course;
+    //chrome.storage.local.get('course', function(entries){
+        var arr = window.toDelete;
         var ind = arr.indexOf(courseid);
         if(ind == -1) return;
         arr.splice(ind, 1);
@@ -179,23 +190,23 @@ function deleteEntry(btn)
 
         // color
         fixColor();
-    });
+    //});
 }
 
 function addEntry(btn)
 {
     var courseid = btn.name;
 
-    chrome.storage.local.get('course', function(entries){
-        console.log(entries.course);
-        var arr = entries.course;
+    //chrome.storage.local.get('course', function(entries){
+        //console.log(entries.course);
+        var arr = window.toDelete;
         if(arr.indexOf(courseid) == -1) arr.push(courseid);
         updateToDelete(arr);
 
         var coursediv = findCourseDiv(courseid);
         btn.remove();
         addButton(coursediv, window.toDelete);
-    });
+    //});
 }
 
 /*function deserializeEntries(s) // from string to arr

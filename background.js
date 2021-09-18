@@ -5,8 +5,8 @@
 
         chrome.runtime.onInstalled.addListener( function(){
             chrome.storage.sync.get({'course' : []}, function(entries) {
-                chrome.storage.local.set({'course': entries.course}, function() {});
                 toDelete = entries.course;
+                chrome.storage.sync.set({'course': entries.course}, function() {});
             });
         });
 
