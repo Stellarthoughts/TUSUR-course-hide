@@ -9,17 +9,6 @@
         window.firstDeleted = null;
         window.toDelete = [];
 
-        /*chrome.storage.local.get('course', function(entries) {
-            window.toDelete = entries.course;  
-        });*/
-
-        /*chrome.runtime.sendMessage( { greeting: "getToDelete"}, function(response) {
-            window.toDelete = response.farewell;
-            console.log(toDelete);
-        });*/
-        //console.log(localStorage.toDelete);
-        //window.toDelete = JSON.parse(localStorage.toDelete);
-        //window.toDelete = JSON.parse(localStorage.getItem('course'));
         init();
 
         var parentObserver = returnParentObserver();
@@ -119,8 +108,6 @@ function updateToDelete(entries)
 {
     window.toDelete = entries;
     localStorage.setItem('course', JSON.stringify(entries));
-    //chrome.storage.sync.set({'course':entries}, function() {});
-    //chrome.storage.local.set({'course':entries}, function() {});
 }
 
 function addButton(node, toDeleteHere)
@@ -153,77 +140,47 @@ function deleteEntry(btn)
 {
     var courseid = btn.name;
 
-    //chrome.storage.local.get('course', function(entries){
-        var arr = window.toDelete;
-        var ind = arr.indexOf(courseid);
-        if(ind == -1) return;
-        arr.splice(ind, 1);
-        updateToDelete(arr);
+    // delete from list toDelete
+    var arr = window.toDelete;
+    var ind = arr.indexOf(courseid);
+    if(ind == -1) return;
+    arr.splice(ind, 1);
+    updateToDelete(arr);
 
-        // reorg
-        var coursediv = findCourseDiv(courseid);
-        var coursedivInd = divs.indexOf(coursediv);
-        var neighboor = findClosestAllowedNeighboor(courseid);
-        console.log(neighboor);
-        if(neighboor == null)
-        {
-            var firstDeletedInd = divs.indexOf(firstDeleted);
-            // TODO: индексы портятся
-            var temp = divs[coursedivInd];
-            divs[coursedivInd] = divs[firstDeletedInd];
-            divs[firstDeletedInd] = temp;
-            divsParent.insertBefore(coursediv,firstDeleted);
-        }
-        else 
-        {
-            var neighboorInd = divs.indexOf(neighboor);
-            var temp = divs[coursedivInd];
-            divs[coursedivInd] = divs[neighboorInd];
-            divs[neighboorInd] = temp;
-            divsParent.insertBefore(coursediv,neighboor);
-        }
-        coursediv.classList.remove("ch_hidden_course");
+    // reorg
+    var coursediv = findCourseDiv(courseid);
+    coursediv.classList.remove("ch_hidden_course");
 
-        // button
-        btn.remove();
-        addButton(coursediv, window.toDelete);
+    // add new button
+    btn.remove();
+    addButton(coursediv, window.toDelete);
 
-        // color
-        fixColor();
-    //});
+    // color
+    fixColor();
+
 }
 
 function addEntry(btn)
 {
     var courseid = btn.name;
 
-    //chrome.storage.local.get('course', function(entries){
-        //console.log(entries.course);
-        var arr = window.toDelete;
-        if(arr.indexOf(courseid) == -1) arr.push(courseid);
-        updateToDelete(arr);
+    // add to toDelete
+    var arr = window.toDelete;
+    if(arr.indexOf(courseid) == -1) arr.push(courseid);
+    updateToDelete(arr);
 
-        var coursediv = findCourseDiv(courseid);
-        btn.remove();
-        addButton(coursediv, window.toDelete);
-    //});
+    // reorg
+    var coursediv = findCourseDiv(courseid);
+    coursediv.classList.add("ch_hidden_course");
+    
+    // add new button
+    btn.remove();
+    addButton(coursediv, window.toDelete);
+
+    // color
+    fixColor();
 }
 
-/*function deserializeEntries(s) // from string to arr
-{
-    var arr = [];
-    if(typeof s === 'undefined' || s.length == 0) return arr;
-    arr = s.split(' ');
-    return arr;
-}
-
-function serializeEntries(arr) // from arr to string
-{
-    var s = "";
-    if(arr == null || arr.length == 0) return s;
-    s = arr.join(' ');
-    return s;
-}*/
 
 function findCourseDiv(courseid)
 {
@@ -243,21 +200,34 @@ function findClosestAllowedNeighboor(courseid)
     return null;
 }
 
+function findClosestDisallowedNeighboor(courseid)
+{
+    for(var i = divsInOrderCourseId.indexOf(courseid) + 1; i < divsInOrderCourseId.length; i++)
+    {
+        if(toDelete.includes(divsInOrderCourseId[i])) return findCourseDiv(divsInOrderCourseId[i]);
+    }
+    return null;
+}
+
+
 function fixColor()
 {
     var i;
+    for(i = 0; i < divs.length; i++)
+    {
+        divs[i].classList.remove("first","odd","even","last");
+        if(i == divs.length - 1) divs[i].classList.add("last");
+    }
     for(i = 0; i < divs.length; i += 2)
     {
         if(divs[i].classList.contains("ch_hidden_course")) break;
-        divs[i].classList.remove("first","odd","even");
         divs[i].classList.add("odd");
     }
     for(i = 1; i < divs.length; i += 2)
     {
         if(divs[i].classList.contains("ch_hidden_course")) break;
-        divs[i].classList.remove("first","odd","even");
         divs[i].classList.add("even");
     }
-
-    if(divs.length > 0 && !divs[i].classList.contains("ch_hidden_course")) divs[0].classList.add("first");
+    
+    if(divs.length > 0 && ! (divs[i].classList.contains("ch_hidden_course"))) divs[0].classList.add("first");
 }
