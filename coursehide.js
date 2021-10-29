@@ -220,12 +220,12 @@ function fixColor()
     }
     for(i = 0; i < divs.length; i += 2)
     {
-        if(divs[i].classList.contains("ch_hidden_course")) break;
+        if(divs[i].classList.contains("ch_hidden_course")) continue;
         divs[i].classList.add("odd");
     }
     for(i = 1; i < divs.length; i += 2)
     {
-        if(divs[i].classList.contains("ch_hidden_course")) break;
+        if(divs[i].classList.contains("ch_hidden_course")) continue;
         divs[i].classList.add("even");
     }
     
