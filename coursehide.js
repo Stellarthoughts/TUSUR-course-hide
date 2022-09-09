@@ -1,7 +1,8 @@
 (
-    function()
+    async function()
     {
         'use strict';
+        // Глобальные переменные
         window.parent = null;
         window.divsParent = null;
         window.divs = [];
@@ -9,8 +10,17 @@
         window.firstDeleted = null;
         window.toDelete = [];
 
+        // Логгирование хранилищ
+        chrome.storage.sync.get(['course'], function(res) {
+            console.log("Chrome storage contents: " + res.course);
+        });
+
+        console.log("Local storage contents: " + localStorage.getItem('course'));
+
+        // Инициализация хранилищ
         init();
 
+        // Обзерверы для изменения порядка отрисовки курсов
         var parentObserver = returnParentObserver();
         parentObserver.observe(document, {childList: true, subtree: true});
     
@@ -26,11 +36,50 @@
 
 function init()
 {
+    // Достаем список скрываемых курсов из локального хранилища
     var item = localStorage.getItem('course');
-    if(item == null) window.toDelete = [];
-    else window.toDelete = JSON.parse(item);
+    var parsed = JSON.parse(item);
+
+    // Если отстутсвует, пытаемся достать из хранилища хрома
+    if(item == null)
+    {
+        console.log("Local storage item is null. Retrieving chrome storage");
+        chrome.storage.sync.get(['course'], function(res) {
+            // Если нет в хранилище, применяем дефолтные значения
+            if(res == undefined)
+            {
+                console.log("Chrome storage contents are undefined. Setting default")
+                window.toDelete = [];
+                localStorage.setItem('course',JSON.stringify([]));
+                chrome.storage.sync.set({course : []}, function() {});
+            }
+            else
+            {
+                console.log("Chrome storage contents found: " + res.course)
+                var storage = JSON.parse(res.course);
+                localStorage.setItem('course', JSON.stringify(storage));
+                window.toDelete = storage;
+                // Рестар страницы абсолютно необходим, так как стор хрома очень медленный и сработает позже обзерверов.
+                // Делать асинхронную функцию не вариант, так как это замедлит работу сайта на каждой перезагрузке страницы
+                window.location.reload(); 
+            }
+        });
+    }
+    else updateToDelete(parsed);
 }
 
+// Функция обновляет все возможные хранилища (локальное, хрома, глобальную переменную) новым списком скрываемых курсов
+function updateToDelete(entries)
+{
+    var jsonEntries = JSON.stringify(entries);
+    window.toDelete = entries;
+    localStorage.setItem('course', jsonEntries);
+    chrome.storage.sync.set({course : jsonEntries}, function() {
+        console.log("Sync storage updated with " + jsonEntries);
+    });
+}
+
+// Это нужно чтобы найти родительскую курсам ноду и сохранить ее у себя, так как по сути добавлением курсов мы занимаемся ручками. Вроде бы...
 function returnParentObserver()
 {
     var parentObserver = new MutationObserver(function(mutations, parentObserver) {
@@ -52,6 +101,7 @@ function returnParentObserver()
     return parentObserver;
 }
 
+// Меняет порядок курсов в зависимости от того, скрыты они или нет.
 function returnDivObserver()
 {
     var divObserver = new MutationObserver(function(mutations, divObserver) {
@@ -66,7 +116,7 @@ function returnDivObserver()
                     divsInOrderCourseId.push(node.dataset.courseid);
 
                     // Buttons
-                    console.log(window.toDelete);
+                    //console.log(window.toDelete);
                     addButton(node, window.toDelete);
 
                     // Rearange & Add Style
@@ -104,12 +154,7 @@ function returnDivObserver()
     return divObserver;
 }
 
-function updateToDelete(entries)
-{
-    window.toDelete = entries;
-    localStorage.setItem('course', JSON.stringify(entries));
-}
-
+// Добавление кнопочки к каждому курсу
 function addButton(node, toDeleteHere)
 {
     var btn = document.createElement("button");
@@ -136,6 +181,7 @@ function addButton(node, toDeleteHere)
     btndiv.appendChild(btn);
 }
 
+// Калбэк для действия на кнопке удаления из списка скрываемых
 function deleteEntry(btn)
 {
     var courseid = btn.name;
@@ -160,6 +206,7 @@ function deleteEntry(btn)
 
 }
 
+// Калбэк для действия на кнопке добавления в список скрываемых
 function addEntry(btn)
 {
     var courseid = btn.name;
@@ -181,7 +228,7 @@ function addEntry(btn)
     fixColor();
 }
 
-
+// Вспомогательные функции
 function findCourseDiv(courseid)
 {
     for(var i = 0; i < divs.length; i++)
@@ -209,7 +256,7 @@ function findClosestDisallowedNeighboor(courseid)
     return null;
 }
 
-
+// Из-за шикарного и читаемого дизайна СДО ТУСУР так же требуется следить за чередованием цветов между курсами
 function fixColor()
 {
     var i;
@@ -228,6 +275,7 @@ function fixColor()
         if(divs[i].classList.contains("ch_hidden_course")) continue;
         divs[i].classList.add("even");
     }
-    
-    if(divs.length > 0 && ! (divs[i].classList.contains("ch_hidden_course"))) divs[0].classList.add("first");
+    //console.log(divs);
+
+    if(divs.length > 0 && ! (divs[divs.length - 1].classList.contains("ch_hidden_course"))) divs[0].classList.add("first");
 }

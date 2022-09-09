@@ -1,8 +1,10 @@
 {
-  "manifest_version": 2,
-  "name": "TUSUR Course Hide",
-  "description": "Надоело, что в СДО висят курсы еще со времен палеозоя? Данное улучшение спасет ваше время и нервы. P.S. За ФСУ!",
-  "version": "0.9",
+  "name": "TUSUR Course Hide ZAFSU Edition",
+  "manifest_version": 3,
+  "description": "Надоело, что в СДО висят курсы еще со времен палеозоя? Данное расширение спасет ваше время и нервы.",
+  "version": "0.91",
+
+  "permissions": ["scripting", "storage"],
 
   "content_scripts": [
     {
@@ -13,13 +15,5 @@
       "js": ["coursehide.js"],
       "run_at": "document_start"
     }
-  ],
-
-  "web_accessible_resources": [
-    "coursehide.css"
-  ],
-
-  "permissions": [
-    "storage"
   ]
 }
