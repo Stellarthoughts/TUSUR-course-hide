@@ -2,7 +2,10 @@
   "name": "TUSUR Course Hide ZAFSU Edition",
   "manifest_version": 3,
   "description": "Надоело, что в СДО висят курсы еще со времен палеозоя? Данное расширение спасет ваше время и нервы.",
-  "version": "0.91",
+  "version": "0.0.0.1",
+  "icons": {
+    "128": "icon128.png"
+  },
 
   "permissions": ["scripting", "storage"],
 
